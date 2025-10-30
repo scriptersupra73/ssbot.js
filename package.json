@@ -1,0 +1,12 @@
+{
+  "name": "smiley-bot",
+  "version": "1.0.0",
+  "description": "Discord bot hosted on Railway",
+  "main": "ssbot.js",
+  "scripts": {
+    "start": "node ssbot.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.13.0"
+  }
+}
