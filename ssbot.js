@@ -209,5 +209,65 @@ client.on('interactionCreate', async interaction => {
           .setColor(0xED4245)
           .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
           .setFooter({ text: 'Smiley
+                    await interaction.reply({ embeds: [embed], ephemeral: true });
 
-          client.login(process.env.DISCORD_TOKEN);          
+        if (logChannel) {
+          logChannel.send(`🚪 <@${interaction.user.id}> clocked out at **${now}**`);
+        }
+        return;
+      }
+    }
+
+    // 🎯 Button Interactions
+    if (interaction.isButton()) {
+      const ticketType = interaction.customId;
+
+      if (['buy', 'commission', 'investor', 'help'].includes(ticketType)) {
+        const category = guild.channels.cache.find(c => c.name === 'tickets' && c.type === ChannelType.GuildCategory);
+
+        if (!category) {
+          return await interaction.reply({ content: '⚠️ Ticket category "tickets" not found.', ephemeral: true });
+        }
+
+        if (!ticketRole) {
+          return await interaction.reply({ content: '⚠️ Role "Ticket RDS" not found.', ephemeral: true });
+        }
+
+        const channel = await guild.channels.create({
+          name: `${ticketType}-ticket-${interaction.user.username}`,
+          type: ChannelType.GuildText,
+          parent: category.id,
+          permissionOverwrites: [
+            { id: guild.id, deny: [PermissionsBitField.Flags.ViewChannel] },
+            { id: interaction.user.id, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages] },
+            { id: ticketRole.id, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages] }
+          ]
+        });
+
+        await channel.send(`🎫 Ticket created by <@${interaction.user.id}> for **${ticketType}**. <@&${ticketRole.id}> will assist you.`);
+        await interaction.reply({ content: `✅ Ticket created: ${channel}`, ephemeral: true });
+        return;
+      }
+
+      if (ticketType === 'confirm_delete') {
+        await interaction.deferReply({ ephemeral: true });
+        await interaction.channel.delete();
+        return;
+      }
+
+      if (ticketType === 'cancel_delete') {
+        await interaction.reply({ content: '❌ Ticket deletion cancelled.', ephemeral: true });
+        return;
+      }
+    }
+  } catch (error) {
+    console.error('❌ Interaction error:', error);
+    if (interaction.replied || interaction.deferred) {
+      await interaction.followUp({ content: '⚠️ Something went wrong.', ephemeral: true });
+    } else {
+      await interaction.reply({ content: '⚠️ Something went wrong.', ephemeral: true });
+    }
+  }
+}); // ✅ closes client.on('interactionCreate')
+
+client.login(process.env.DISCORD_TOKEN); // ✅ starts the bot
