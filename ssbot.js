@@ -45,7 +45,7 @@ client.on('guildMemberAdd', async member => {
 
   const embed = new EmbedBuilder()
     .setTitle(`👋 Welcome, ${member.displayName}!`)
-    .setDescription(`You are member **#${memberCount}** of Smiley Services.\n\n🎟️ Use \`ticket channel\` to get started or explore the other channels.`)
+    .setDescription(`You are member **#${memberCount}** of Smiley Services.\n\n🎟️ Use \`/ticket\` to get started or explore the other channels.`)
     .setColor(0x5865F2)
     .setThumbnail(member.displayAvatarURL({ dynamic: true }))
     .setImage('https://media.tenor.com/mUcTW_KLwYwAAAAi/wave-roblox.gif')
@@ -66,6 +66,53 @@ client.on('interactionCreate', async interaction => {
     const hasTicketRDS = interaction.member?.roles?.cache?.has(ticketRole?.id);
     const logChannel = guild.channels.cache.get(LOG_CHANNEL_ID);
     const budgetChannel = guild.channels.cache.get(BUDGET_CHANNEL_ID);
+
+    // 🎯 Button Interactions (moved up to handle first)
+    if (interaction.isButton()) {
+      const ticketType = interaction.customId;
+
+      if (['buy', 'commission', 'investor', 'help'].includes(ticketType)) {
+        // Button interactions don't need role check - anyone can create a ticket
+        const category = guild.channels.cache.find(c => c.name === 'tickets' && c.type === ChannelType.GuildCategory);
+
+        if (!category) {
+          return await interaction.reply({ content: '⚠️ Ticket category "tickets" not found.', ephemeral: true });
+        }
+
+        if (!ticketRole) {
+          return await interaction.reply({ content: '⚠️ Role "Ticket RDS" not found.', ephemeral: true });
+        }
+
+        const channel = await guild.channels.create({
+          name: `${ticketType}-ticket-${interaction.user.username}`,
+          type: ChannelType.GuildText,
+          parent: category.id,
+          permissionOverwrites: [
+            { id: guild.id, deny: [PermissionsBitField.Flags.ViewChannel] },
+            { id: interaction.user.id, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages] },
+            { id: ticketRole.id, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages] }
+          ]
+        });
+
+        await channel.send(`🎫 Ticket created by <@${interaction.user.id}> for **${ticketType}**. <@&${ticketRole.id}> will assist you.`);
+        await interaction.reply({ content: `✅ Ticket created: ${channel}`, ephemeral: true });
+        return;
+      }
+
+      if (ticketType === 'confirm_delete') {
+        if (!hasTicketRDS) {
+          return await interaction.reply({ content: '⛔ You do not have permission to delete tickets.', ephemeral: true });
+        }
+        await interaction.deferReply({ ephemeral: true });
+        await interaction.channel.delete();
+        return;
+      }
+
+      if (ticketType === 'cancel_delete') {
+        await interaction.reply({ content: '❌ Ticket deletion cancelled.', ephemeral: true });
+        return;
+      }
+    }
 
     // 📝 Modal Submission (Clockin)
     if (interaction.type === InteractionType.ModalSubmit && interaction.customId === 'clockin_modal') {
@@ -97,7 +144,8 @@ client.on('interactionCreate', async interaction => {
     if (interaction.isChatInputCommand()) {
       const cmd = interaction.commandName;
 
-      if (['ticket', 'delete', 'availability', 'clockin', 'clockout', 'add', 'remove'].includes(cmd) && !hasTicketRDS) {
+      // Role check for commands (except ticket which anyone can use to see the panel)
+      if (['delete', 'availability', 'clockin', 'clockout', 'add', 'remove'].includes(cmd) && !hasTicketRDS) {
         return await interaction.reply({ content: '⛔ You do not have permission to use this command.', ephemeral: true });
       }
 
@@ -219,48 +267,6 @@ client.on('interactionCreate', async interaction => {
       }
     }
 
-    // 🎯 Button Interactions
-    if (interaction.isButton()) {
-      const ticketType = interaction.customId;
-
-      if (['buy', 'commission', 'investor', 'help'].includes(ticketType)) {
-        const category = guild.channels.cache.find(c => c.name === 'tickets' && c.type === ChannelType.GuildCategory);
-
-        if (!category) {
-          return await interaction.reply({ content: '⚠️ Ticket category "tickets" not found.', ephemeral: true });
-        }
-
-        if (!ticketRole) {
-          return await interaction.reply({ content: '⚠️ Role "Ticket RDS" not found.', ephemeral: true });
-        }
-
-        const channel = await guild.channels.create({
-          name: `${ticketType}-ticket-${interaction.user.username}`,
-          type: ChannelType.GuildText,
-          parent: category.id,
-          permissionOverwrites: [
-            { id: guild.id, deny: [PermissionsBitField.Flags.ViewChannel] },
-            { id: interaction.user.id, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages] },
-            { id: ticketRole.id, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages] }
-          ]
-        });
-
-        await channel.send(`🎫 Ticket created by <@${interaction.user.id}> for **${ticketType}**. <@&${ticketRole.id}> will assist you.`);
-        await interaction.reply({ content: `✅ Ticket created: ${channel}`, ephemeral: true });
-        return;
-      }
-
-      if (ticketType === 'confirm_delete') {
-        await interaction.deferReply({ ephemeral: true });
-        await interaction.channel.delete();
-        return;
-      }
-
-      if (ticketType === 'cancel_delete') {
-        await interaction.reply({ content: '❌ Ticket deletion cancelled.', ephemeral: true });
-        return;
-      }
-    }
   } catch (error) {
     console.error('❌ Interaction error:', error);
     if (interaction.replied || interaction.deferred) {
