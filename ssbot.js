@@ -67,12 +67,11 @@ client.on('interactionCreate', async interaction => {
     const logChannel = guild.channels.cache.get(LOG_CHANNEL_ID);
     const budgetChannel = guild.channels.cache.get(BUDGET_CHANNEL_ID);
 
-    // 🎯 Button Interactions (moved up to handle first)
+    // 🎯 Button Interactions (handle first to avoid role check issues)
     if (interaction.isButton()) {
       const ticketType = interaction.customId;
 
       if (['buy', 'commission', 'investor', 'help'].includes(ticketType)) {
-        // Button interactions don't need role check - anyone can create a ticket
         const category = guild.channels.cache.find(c => c.name === 'tickets' && c.type === ChannelType.GuildCategory);
 
         if (!category) {
@@ -144,7 +143,7 @@ client.on('interactionCreate', async interaction => {
     if (interaction.isChatInputCommand()) {
       const cmd = interaction.commandName;
 
-      // Role check for commands (except ticket which anyone can use to see the panel)
+      // Role check for staff commands (not ticket - anyone can use that)
       if (['delete', 'availability', 'clockin', 'clockout', 'add', 'remove'].includes(cmd) && !hasTicketRDS) {
         return await interaction.reply({ content: '⛔ You do not have permission to use this command.', ephemeral: true });
       }
