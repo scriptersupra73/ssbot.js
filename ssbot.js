@@ -190,7 +190,7 @@ client.on('interactionCreate', async interaction => {
           .setCustomId('tasks')
           .setLabel('Tasks / Jobs for today')
           .setStyle(TextInputStyle.Paragraph)
-          .setPlaceholder('Enter what you’ll be working on...')
+          .setPlaceholder('Enter what you'll be working on...')
           .setRequired(true);
 
         const row = new ActionRowBuilder().addComponents(taskInput);
@@ -208,8 +208,9 @@ client.on('interactionCreate', async interaction => {
           .setDescription(`🕒 **${now}**`)
           .setColor(0xED4245)
           .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
-          .setFooter({ text: 'Smiley
-                    await interaction.reply({ embeds: [embed], ephemeral: true });
+          .setFooter({ text: 'Smiley Services Bot', iconURL: client.user.displayAvatarURL() });
+
+        await interaction.reply({ embeds: [embed], ephemeral: true });
 
         if (logChannel) {
           logChannel.send(`🚪 <@${interaction.user.id}> clocked out at **${now}**`);
@@ -268,6 +269,6 @@ client.on('interactionCreate', async interaction => {
       await interaction.reply({ content: '⚠️ Something went wrong.', ephemeral: true });
     }
   }
-}); // ✅ closes client.on('interactionCreate')
+});
 
-client.login(process.env.DISCORD_TOKEN); // ✅ starts the bot
+client.login(process.env.DISCORD_TOKEN);
