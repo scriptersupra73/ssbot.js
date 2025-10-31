@@ -1,3 +1,5 @@
+client.removeAllListeners(); // Clears any previously registered listeners
+console.log('✅ Cleared all previous listeners');
 require('dotenv').config();
 const { Client, GatewayIntentBits, Partials, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, PermissionsBitField, ModalBuilder, TextInputBuilder, TextInputStyle, InteractionType } = require('discord.js');
 
