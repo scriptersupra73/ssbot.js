@@ -101,10 +101,13 @@ client.on('interactionCreate', async interaction => {
         return await interaction.reply({ content: '⛔ You do not have permission to use this command.', ephemeral: true });
       }
 
-      // 💰 Budget Commands
       if (cmd === 'add' || cmd === 'remove') {
         const currency = interaction.options.getString('currency');
         const amount = interaction.options.getNumber('amount');
+
+        if (!currency || !amount) {
+          return await interaction.reply({ content: '❌ Missing currency or amount.', ephemeral: true });
+        }
 
         if (!['robux', 'usd'].includes(currency)) {
           return await interaction.reply({ content: '❌ Invalid currency. Use `robux` or `usd`.', ephemeral: true });
@@ -136,7 +139,6 @@ client.on('interactionCreate', async interaction => {
         return;
       }
 
-      // 🎫 Ticket Panel
       if (cmd === 'ticket') {
         const embed = new EmbedBuilder()
           .setTitle('🎫 TICKETS')
@@ -154,7 +156,6 @@ client.on('interactionCreate', async interaction => {
         return;
       }
 
-      // 🗑️ Delete Ticket
       if (cmd === 'delete') {
         const row = new ActionRowBuilder().addComponents(
           new ButtonBuilder().setCustomId('confirm_delete').setLabel('Confirm Delete').setStyle(ButtonStyle.Danger),
@@ -165,7 +166,6 @@ client.on('interactionCreate', async interaction => {
         return;
       }
 
-      // 📋 Availability
       if (cmd === 'availability') {
         const status = interaction.options.getString('status');
         const hours = interaction.options.getString('hours');
@@ -181,7 +181,6 @@ client.on('interactionCreate', async interaction => {
         return;
       }
 
-      // 🕒 Clock In Modal Trigger
       if (cmd === 'clockin') {
         const modal = new ModalBuilder()
           .setCustomId('clockin_modal')
@@ -201,7 +200,6 @@ client.on('interactionCreate', async interaction => {
         return;
       }
 
-      // 🔚 Clock Out
       if (cmd === 'clockout') {
         const now = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
 
@@ -209,5 +207,4 @@ client.on('interactionCreate', async interaction => {
           .setTitle(`🔚 ${interaction.user.username} Clocked Out`)
           .setDescription(`🕒 **${now}**`)
           .setColor(0xED4245)
-          .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
-          .setFooter({ text: 'Smiley Services Bot
+         
