@@ -207,4 +207,9 @@ client.on('interactionCreate', async interaction => {
     if (interaction.replied || interaction.deferred) {
       await interaction.followUp({ content: '⚠️ Something went wrong.', ephemeral: true });
     } else {
-      await interaction.reply({ content: '⚠️ Something went wrong.', ephemeral:
+      await interaction.reply({ content: '⚠️ Something went wrong.', ephemeral: true });
+    }
+  }
+});
+
+client.login(process.env.DISCORD_TOKEN);
