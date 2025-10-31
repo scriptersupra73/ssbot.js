@@ -63,10 +63,37 @@ client.on('interactionCreate', async interaction => {
   try {
     const guild = interaction.guild;
     const ticketRole = guild.roles.cache.find(r => r.name === 'Ticket RDS');
-    const hasTicketRDS = interaction.member.roles.cache.has(ticketRole?.id);
+    const hasTicketRDS = interaction.member?.roles?.cache?.has(ticketRole?.id);
     const logChannel = guild.channels.cache.get(LOG_CHANNEL_ID);
     const budgetChannel = guild.channels.cache.get(BUDGET_CHANNEL_ID);
 
+    // 📝 Modal Submission (Clockin)
+    if (interaction.type === InteractionType.ModalSubmit && interaction.customId === 'clockin_modal') {
+      const tasks = interaction.fields.getTextInputValue('tasks');
+      const now = new Date().toLocaleString('en-US', {
+        timeZone: 'America/New_York',
+        weekday: 'long',
+        hour: 'numeric',
+        minute: 'numeric',
+        hour12: true
+      });
+
+      const embed = new EmbedBuilder()
+        .setTitle(`✅ ${interaction.user.username} Clocked In`)
+        .setDescription(`🕒 **${now}**\n\n📋 **Tasks / Jobs:**\n${tasks}`)
+        .setColor(0x57F287)
+        .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
+        .setFooter({ text: 'Smiley Services Bot', iconURL: client.user.displayAvatarURL() });
+
+      await interaction.reply({ embeds: [embed], ephemeral: true });
+
+      if (logChannel) {
+        logChannel.send(`✅ <@${interaction.user.id}> clocked in.\n🕒 ${now}\n📋 Tasks:\n${tasks}`);
+      }
+      return;
+    }
+
+    // 🎯 Slash Commands
     if (interaction.isChatInputCommand()) {
       const cmd = interaction.commandName;
 
@@ -74,6 +101,7 @@ client.on('interactionCreate', async interaction => {
         return await interaction.reply({ content: '⛔ You do not have permission to use this command.', ephemeral: true });
       }
 
+      // 💰 Budget Commands
       if (cmd === 'add' || cmd === 'remove') {
         const currency = interaction.options.getString('currency');
         const amount = interaction.options.getNumber('amount');
@@ -108,6 +136,7 @@ client.on('interactionCreate', async interaction => {
         return;
       }
 
+      // 🎫 Ticket Panel
       if (cmd === 'ticket') {
         const embed = new EmbedBuilder()
           .setTitle('🎫 TICKETS')
@@ -122,8 +151,10 @@ client.on('interactionCreate', async interaction => {
         );
 
         await interaction.reply({ embeds: [embed], components: [row] });
+        return;
       }
 
+      // 🗑️ Delete Ticket
       if (cmd === 'delete') {
         const row = new ActionRowBuilder().addComponents(
           new ButtonBuilder().setCustomId('confirm_delete').setLabel('Confirm Delete').setStyle(ButtonStyle.Danger),
@@ -131,8 +162,10 @@ client.on('interactionCreate', async interaction => {
         );
 
         await interaction.reply({ content: 'Are you sure you want to delete this ticket?', components: [row] });
+        return;
       }
 
+      // 📋 Availability
       if (cmd === 'availability') {
         const status = interaction.options.getString('status');
         const hours = interaction.options.getString('hours');
@@ -145,8 +178,10 @@ client.on('interactionCreate', async interaction => {
         if (logChannel) {
           logChannel.send(`📢 <@${interaction.user.id}> is now **${status}** and active during **${hours}**`);
         }
+        return;
       }
 
+      // 🕒 Clock In Modal Trigger
       if (cmd === 'clockin') {
         const modal = new ModalBuilder()
           .setCustomId('clockin_modal')
@@ -163,8 +198,10 @@ client.on('interactionCreate', async interaction => {
         modal.addComponents(row);
 
         await interaction.showModal(modal);
+        return;
       }
 
+      // 🔚 Clock Out
       if (cmd === 'clockout') {
         const now = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
 
@@ -173,34 +210,4 @@ client.on('interactionCreate', async interaction => {
           .setDescription(`🕒 **${now}**`)
           .setColor(0xED4245)
           .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
-          .setFooter({ text: 'Smiley Services Bot', iconURL: client.user.displayAvatarURL() });
-
-        await interaction.reply({ embeds: [embed], ephemeral: true });
-
-        if (logChannel) {
-          logChannel.send(`🚪 <@${interaction.user.id}> clocked out at **${now}**`);
-        }
-      }
-    }
-
-    if (interaction.type === InteractionType.ModalSubmit && interaction.customId === 'clockin_modal') {
-      const tasks = interaction.fields.getTextInputValue('tasks');
-      const now = new Date().toLocaleString('en-US', {
-        timeZone: 'America/New_York',
-        weekday: 'long',
-        hour: 'numeric',
-        minute: 'numeric',
-        hour12: true
-      });
-
-      const embed = new EmbedBuilder()
-        .setTitle(`✅ ${interaction.user.username} Clocked In`)
-        .setDescription(`🕒 **${now}**\n\n📋 **Tasks / Jobs:**\n${tasks}`)
-        .setColor(0x57F287)
-        .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
-        .setFooter({ text: 'Smiley Services Bot', iconURL: client.user.displayAvatarURL() });
-
-      await interaction.reply({ embeds: [embed], ephemeral: true });
-
-      if (logChannel) {
-        logChannel.send(`✅ <@${interaction.user.id}> clocked in.\n🕒 ${now}\n📋 Tasks:\n${
+          .setFooter({ text: 'Smiley Services Bot
