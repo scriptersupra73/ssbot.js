@@ -274,6 +274,6 @@ client.on('interactionCreate', async interaction => {
       await interaction.reply({ content: '⚠️ Something went wrong.', ephemeral: true });
     }
   }
-});
+}); // Closes client.on('interactionCreate')
 
 client.login(process.env.DISCORD_TOKEN);
