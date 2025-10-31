@@ -207,4 +207,7 @@ client.on('interactionCreate', async interaction => {
           .setTitle(`🔚 ${interaction.user.username} Clocked Out`)
           .setDescription(`🕒 **${now}**`)
           .setColor(0xED4245)
-         
+          .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
+          .setFooter({ text: 'Smiley
+
+          client.login(process.env.DISCORD_TOKEN);          
