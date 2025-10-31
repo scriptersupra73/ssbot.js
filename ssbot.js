@@ -8,11 +8,20 @@ const {
   ButtonBuilder,
   ButtonStyle,
   ChannelType,
-  PermissionsBitField
+  PermissionsBitField,
+  ModalBuilder,
+  TextInputBuilder,
+  TextInputStyle,
+  InteractionType
 } = require('discord.js');
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMembers],
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildMembers
+  ],
   partials: [Partials.Channel]
 });
 
@@ -30,10 +39,10 @@ client.on('guildMemberAdd', async member => {
 
   const embed = new EmbedBuilder()
     .setTitle(`👋 Welcome, ${member.displayName}!`)
-    .setDescription(`You are member **#${memberCount}** of Smiley Services.\n\n🎟️ Use \`/ticket\` to get started or explore the channels.`)
+    .setDescription(`You are member **#${memberCount}** of Smiley Services.\n\n🎟️ Use \`ticket channel\` to get started or explore the other channels.`)
     .setColor(0x5865F2)
     .setThumbnail(member.displayAvatarURL({ dynamic: true }))
-    .setImage('https://media.tenor.com/mUcTW_KLwYwAAAAi/wave-roblox.gif') // Replace with your own hosted .gif
+    .setImage('https://media.tenor.com/mUcTW_KLwYwAAAAi/wave-roblox.gif')
     .setFooter({
       text: 'Smiley Services Bot • Precision meets creativity',
       iconURL: client.user.displayAvatarURL()
@@ -96,27 +105,62 @@ client.on('interactionCreate', async interaction => {
       }
 
       if (interaction.commandName === 'clockin') {
-        const now = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
-        await interaction.reply({
-          content: `🕒 <@${interaction.user.id}> clocked in at **${now}**`,
-          ephemeral: false
-        });
+        const modal = new ModalBuilder()
+          .setCustomId('clockin_modal')
+          .setTitle('🕒 Clock In — Smiley Services');
 
-        if (logChannel) {
-          logChannel.send(`✅ <@${interaction.user.id}> clocked in at **${now}**`);
-        }
+        const taskInput = new TextInputBuilder()
+          .setCustomId('tasks')
+          .setLabel('Tasks / Jobs for today')
+          .setStyle(TextInputStyle.Paragraph)
+          .setPlaceholder('Enter what you’ll be working on...')
+          .setRequired(true);
+
+        const row = new ActionRowBuilder().addComponents(taskInput);
+        modal.addComponents(row);
+
+        await interaction.showModal(modal);
       }
 
       if (interaction.commandName === 'clockout') {
         const now = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
-        await interaction.reply({
-          content: `🔚 <@${interaction.user.id}> clocked out at **${now}**`,
-          ephemeral: false
-        });
+
+        const embed = new EmbedBuilder()
+          .setTitle(`🔚 ${interaction.user.username} Clocked Out`)
+          .setDescription(`🕒 **${now}**`)
+          .setColor(0xED4245)
+          .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
+          .setFooter({ text: 'Smiley Services Bot', iconURL: client.user.displayAvatarURL() });
+
+        await interaction.reply({ embeds: [embed], ephemeral: true });
 
         if (logChannel) {
           logChannel.send(`🚪 <@${interaction.user.id}> clocked out at **${now}**`);
         }
+      }
+    }
+
+    if (interaction.type === InteractionType.ModalSubmit && interaction.customId === 'clockin_modal') {
+      const tasks = interaction.fields.getTextInputValue('tasks');
+      const now = new Date().toLocaleString('en-US', {
+        timeZone: 'America/New_York',
+        weekday: 'long',
+        hour: 'numeric',
+        minute: 'numeric',
+        hour12: true
+      });
+
+      const embed = new EmbedBuilder()
+        .setTitle(`✅ ${interaction.user.username} Clocked In`)
+        .setDescription(`🕒 **${now}**\n\n📋 **Tasks / Jobs:**\n${tasks}`)
+        .setColor(0x57F287)
+        .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
+        .setFooter({ text: 'Smiley Services Bot', iconURL: client.user.displayAvatarURL() });
+
+      await interaction.reply({ embeds: [embed], ephemeral: true });
+
+      if (logChannel) {
+        logChannel.send(`✅ <@${interaction.user.id}> clocked in.\n🕒 ${now}\n📋 Tasks:\n${tasks}`);
       }
     }
 
@@ -163,9 +207,4 @@ client.on('interactionCreate', async interaction => {
     if (interaction.replied || interaction.deferred) {
       await interaction.followUp({ content: '⚠️ Something went wrong.', ephemeral: true });
     } else {
-      await interaction.reply({ content: '⚠️ Something went wrong.', ephemeral: true });
-    }
-  }
-});
-
-client.login(process.env.DISCORD_TOKEN);
+      await interaction.reply({ content: '⚠️ Something went wrong.', ephemeral:
