@@ -1,11 +1,9 @@
-client.removeAllListeners(); // Clears any previously registered listeners
-console.log('✅ Cleared all previous listeners');
 require('dotenv').config();
 const { Client, GatewayIntentBits, Partials, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, PermissionsBitField, ModalBuilder, TextInputBuilder, TextInputStyle, InteractionType } = require('discord.js');
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMembers],
-  partials: [Partials.Channel]
+  partials: [Partials.Channel, Partials.GuildMember]
 });
 
 const LOG_CHANNEL_ID = '1433248485221732455';
@@ -19,17 +17,25 @@ client.once('ready', () => {
 });
 
 client.on('guildMemberAdd', async member => {
-  const welcomeChannel = member.guild.channels.cache.get(WELCOME_CHANNEL_ID);
-  const memberCount = member.guild.memberCount;
-  const embed = new EmbedBuilder()
-    .setTitle('Welcome, ' + member.displayName + '!')
-    .setDescription('You are member #' + memberCount + ' of Smiley Services. Use /ticket to get started.')
-    .setColor(0x5865F2)
-    .setThumbnail(member.displayAvatarURL())
-    .setImage('https://media.tenor.com/mUcTW_KLwYwAAAAi/wave-roblox.gif')
-    .setFooter({ text: 'Smiley Services Bot', iconURL: client.user.displayAvatarURL() });
-  if (welcomeChannel) {
-    welcomeChannel.send({ content: 'Welcome <@' + member.id + '>!', embeds: [embed] });
+  try {
+    console.log('New member joined: ' + member.user.tag);
+    const welcomeChannel = member.guild.channels.cache.get(WELCOME_CHANNEL_ID);
+    if (!welcomeChannel) {
+      console.log('Welcome channel not found');
+      return;
+    }
+    const memberCount = member.guild.memberCount;
+    const embed = new EmbedBuilder()
+      .setTitle('Welcome, ' + member.displayName + '!')
+      .setDescription('You are member #' + memberCount + ' of Smiley Services. Use /ticket to get started.')
+      .setColor(0x5865F2)
+      .setThumbnail(member.displayAvatarURL())
+      .setImage('https://media.tenor.com/mUcTW_KLwYwAAAAi/wave-roblox.gif')
+      .setFooter({ text: 'Smiley Services Bot', iconURL: client.user.displayAvatarURL() });
+    await welcomeChannel.send({ content: 'Welcome <@' + member.id + '>!', embeds: [embed] });
+    console.log('Welcome message sent');
+  } catch (error) {
+    console.error('Error in guildMemberAdd:', error);
   }
 });
 
