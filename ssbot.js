@@ -30,7 +30,7 @@ client.on('guildMemberAdd', async member => {
       .setDescription('You are member #' + memberCount + ' of Smiley Services.\n⭐⭐⭐⭐⭐ Shop Safe | Develop Quick\n\nUse /ticket to get started.')
       .setColor(0x5865F2)
       .setThumbnail(member.displayAvatarURL())
-      .setImage('https://imgur.com/G5pk4Nz')
+      .setImage('https://i.imgur.com/G5pk4Nz.png')
       .setFooter({ text: 'Smiley Services Bot', iconURL: client.user.displayAvatarURL() });
     
     await welcomeChannel.send({ content: 'Welcome <@' + member.id + '>!', embeds: [embed] });
