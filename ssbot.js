@@ -27,10 +27,10 @@ client.on('guildMemberAdd', async member => {
     const memberCount = member.guild.memberCount;
     const embed = new EmbedBuilder()
       .setTitle('Welcome, ' + member.displayName + '!')
-      .setDescription('You are member #' + memberCount + ' of Smiley Services. Use /ticket to get started.')
+      .setDescription('You are member #' + memberCount + ' of Smiley Services.\n⭐⭐⭐⭐⭐ Shop Safe | Develop Quick\n\nUse /ticket to get started.')
       .setColor(0x5865F2)
       .setThumbnail(member.displayAvatarURL())
-      .setImage('https://media.tenor.com/mUcTW_KLwYwAAAAi/wave-roblox.gif')
+      .setImage('https://i.imgur.com/8TNUfj6.png')
       .setFooter({ text: 'Smiley Services Bot', iconURL: client.user.displayAvatarURL() });
     await welcomeChannel.send({ content: 'Welcome <@' + member.id + '>!', embeds: [embed] });
     console.log('Welcome message sent');
