@@ -30,11 +30,10 @@ client.on('guildMemberAdd', async member => {
       .setDescription('You are member #' + memberCount + ' of Smiley Services.\n⭐⭐⭐⭐⭐ Shop Safe | Develop Quick\n\nUse /ticket to get started.')
       .setColor(0x5865F2)
       .setThumbnail(member.displayAvatarURL())
+      .setImage('https://i.imgur.com/8TNUfj6.png')
       .setFooter({ text: 'Smiley Services Bot', iconURL: client.user.displayAvatarURL() });
     
-    // Send image separately for bigger display
     await welcomeChannel.send({ content: 'Welcome <@' + member.id + '>!', embeds: [embed] });
-    await welcomeChannel.send('https://i.imgur.com/8TNUfj6.png');
     console.log('Welcome message sent');
   } catch (error) {
     console.error('Error in guildMemberAdd:', error);
@@ -105,8 +104,30 @@ client.on('interactionCreate', async interaction => {
 
     if (interaction.isChatInputCommand()) {
       const cmd = interaction.commandName;
-      if (['delete', 'availability', 'clockin', 'clockout', 'add', 'remove', 'claim'].includes(cmd) && !hasTicketRDS) {
+      if (['delete', 'availability', 'clockin', 'clockout', 'add', 'remove', 'claim', 'embed'].includes(cmd) && !hasTicketRDS) {
         return await interaction.reply({ content: 'You do not have permission to use this command.', ephemeral: true });
+      }
+
+      if (cmd === 'embed') {
+        const title = interaction.options.getString('title');
+        const description = interaction.options.getString('description');
+        const color = interaction.options.getString('color') || '5865F2';
+        const imageUrl = interaction.options.getString('image');
+        
+        const embed = new EmbedBuilder()
+          .setTitle(title)
+          .setDescription(description)
+          .setColor(parseInt(color, 16))
+          .setFooter({ text: 'Smiley Services Bot', iconURL: client.user.displayAvatarURL() })
+          .setTimestamp();
+        
+        if (imageUrl) {
+          embed.setImage(imageUrl);
+        }
+        
+        await interaction.reply({ content: 'Embed sent!', ephemeral: true });
+        await interaction.channel.send({ embeds: [embed] });
+        return;
       }
 
       if (cmd === 'claim') {
@@ -228,5 +249,3 @@ client.on('interactionCreate', async interaction => {
     }
   }
 });
-
-client.login(process.env.DISCORD_TOKEN);
