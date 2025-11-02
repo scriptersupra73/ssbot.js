@@ -103,8 +103,30 @@ client.on('interactionCreate', async interaction => {
 
     if (interaction.isChatInputCommand()) {
       const cmd = interaction.commandName;
-      if (['delete', 'availability', 'clockin', 'clockout', 'add', 'remove'].includes(cmd) && !hasTicketRDS) {
+      if (['delete', 'availability', 'clockin', 'clockout', 'add', 'remove', 'claim'].includes(cmd) && !hasTicketRDS) {
         return await interaction.reply({ content: 'You do not have permission to use this command.', ephemeral: true });
+      }
+
+      if (cmd === 'claim') {
+        // Check if channel name contains "ticket"
+        if (!interaction.channel.name.includes('ticket')) {
+          return await interaction.reply({ content: 'This command can only be used in ticket channels.', ephemeral: true });
+        }
+        
+        const embed = new EmbedBuilder()
+          .setTitle('🎫 Ticket Claimed')
+          .setDescription('This ticket has been claimed by <@' + interaction.user.id + '>')
+          .setColor(0x57F287)
+          .setThumbnail(interaction.user.displayAvatarURL())
+          .setFooter({ text: 'Smiley Services Bot', iconURL: client.user.displayAvatarURL() })
+          .setTimestamp();
+        
+        await interaction.reply({ embeds: [embed] });
+        
+        if (logChannel) {
+          logChannel.send('🎫 <@' + interaction.user.id + '> claimed ticket: ' + interaction.channel.name);
+        }
+        return;
       }
 
       if (cmd === 'add' || cmd === 'remove') {
