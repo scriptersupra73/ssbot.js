@@ -46,7 +46,7 @@ client.on('guildMemberAdd', async member => {
       .setDescription('You are member **#' + memberCount + '** of Smiley Services.\n⭐⭐⭐⭐⭐ Shop Safe | Develop Quick\n\nUse `/ticket` to get started.')
       .setColor(COLORS.INFO)
       .setThumbnail(member.displayAvatarURL())
-      .setImage('https://i.imgur.com/gun2UcP.png')
+      .setImage('https://i.imgur.com/TOPOPxQ.png')
       .setFooter({ text: 'Smiley Services Bot', iconURL: client.user.displayAvatarURL() })
       .setTimestamp();
     
